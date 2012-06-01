@@ -1,4 +1,9 @@
-﻿function reuseTab(url, match) {
+﻿/*
+Tries to open URL in already existing tab matching given pattern. If it doesn't
+exist, opens URL in new tab.
+*/
+
+function reuseTab(url, match) {
 
     // this whole thing doesn't make sense if you don't provide the URL
     if (url) {
