@@ -38,7 +38,7 @@ function Cacheable(options) {
     this.options.expire = this.options.expire || 60*60;  // 1 hour by default
     
     this.data = {};
-    this.lastCheck = 0;
+    this.lastCheck = this.options.lastCheck || 0;
     
     this.set = function (data, callback) {
         var data = data || {};
@@ -66,6 +66,7 @@ function Cacheable(options) {
         var cacheData = function (data) {
             this.data = data;
             this.options.onData(this.data);
+            this.lastCheck = (new Date).getTime();
             handleData(this.data);
         }
         
