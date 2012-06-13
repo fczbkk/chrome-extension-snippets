@@ -1,5 +1,24 @@
-// TODO I'll add some documentation later. First I have to empty my head
-// and then figure out again, what this object does. But it works!
+/*
+This object serves as an interface for retrieving data from external source.
+It takes care of caching the data, so you don't spam the source with your
+requests.
+
+It uses localStore to save the data by default. You can change it by providing
+custom data callbacks in the options object:
+
+- dataCallback
+Function that checks the data from the source and returns them via
+callback function. See below for AJAX example.
+
+- onData
+Event that fires every time any data is changed. This can happen either by
+calling the dataCallback function or by calling Cacheable.set method.
+
+- expire
+Interval in seconds during which the data from dataCallback are considered
+valid. 1 hour by default.
+
+*/
 
 function Cacheable(options) {
 
@@ -16,7 +35,7 @@ function Cacheable(options) {
     this.options = options || {};
     this.options.dataCallback = this.options.dataCallback || defaultDataCallback;
     this.options.onData = this.options.onData || defaultOnData;
-    this.options.expire = this.options.expire || 60*60*24;
+    this.options.expire = this.options.expire || 60*60;  // 1 hour by default
     
     this.data = {};
     this.lastCheck = 0;
@@ -60,14 +79,36 @@ function Cacheable(options) {
     return this;
 }
 
-// OK, let's test it!
+// Simple example using the defaults, working with localStorage
 
-var myCache = new Cacheable();
+var simpleCache = new Cacheable();
 
-myCache.set({'one' : 'two'}, function (data) {
+simpleCache.set({'one' : 'two'}, function (data) {
     console.log('saving data:', data);
 });
 
-myCache.get('one', function (data) {
+simpleCache.get('one', function (data) {
     console.log('received data:', data);
+});
+
+// Advanced example using AJAX to get data.
+
+function ajax(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4) {callback(xhr.responseText);}
+    };
+    xhr.open("GET", url, true);
+    xhr.send();
+}
+
+var advancedCache = new Cacheable({
+    dataCallback :  function (callback) {
+        ajax('http://www.datasource.com/data.json', function (response) {
+            callback(JSON.parse(response));
+        });
+    },
+    onData : function (data) {
+        ajax('http://www.datasource.com/handledata?data=' + JSON.stringify(data)); 
+    }
 });
